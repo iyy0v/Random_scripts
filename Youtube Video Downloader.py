@@ -1,6 +1,7 @@
 import re
 from pytube import YouTube 
 
+# functions used in the script
 def filterData(data,j,type):
 	global choices
 	i = 0
@@ -23,18 +24,38 @@ def addChoices(Type,Format,Res,choices):
 	if(Res not in choices[2]):
 		choices[2].append(Res)
 	return choices
+
+def choicesMenu(i,word):
+	global choices
+	choice = "0"
+	while(int(choice) < 1 or int(choice) > len(choices[i])):
+		print("\n\n Choose a " + word + " :")
+		
+		n = 1
+		for c in choices[i]:
+			print("\n [" + str(n) +"] " + c)
+			n += 1
+
+		choice = input("\n Enter a number : ")
+		if (int(choice) > 0 and int(choice) <= len(choices[i])):
+			uVar = choices[i][int(choice)-1]
+		else:
+			print("\n Unknown choice ! Please enter a number again.")
+	return uVar
 #####################################################
 
-url = input("Enter the video link/url : ")
+# Script:
+
+url = input("\n Enter the video link/url : ")
 
 yt = YouTube(url)
 
 Streams = yt.streams.filter(res=None)
 
+# extract all available specs for the given video
 data = []
 choices = [[],[],[]]
 for strm in Streams:
-	print(strm)
 	strm = str(strm)
 	vTag = re.findall(".* itag=\"(\d+)\".*",strm)[0]
 	vType = re.findall(".* type=\"([^\"]+)\".*",strm)[0]
@@ -46,65 +67,31 @@ for strm in Streams:
 	data.append((vTag,vType,vFormat,vRes))
 	choices = addChoices(vType,vFormat,vRes,choices)
 
-choice = "0"
-while(int(choice) < 1 or int(choice) > len(choices[0])):
-	print("\n In what type of media do you want to download this video :\n")
-	
-	n = 1
-	for c in choices[0]:
-		print(" [" + str(n) +"] " + c + "\n")
-		n += 1
-
-	choice = input(" Enter a number : ")
-	if (int(choice) > 0 and int(choice) <= len(choices[0])):
-		uType = choices[0][int(choice)-1]
-	else:
-		print("\n Unknown choice ! Please enter a number again.")
+# choose media specs to download
+uType = choicesMenu(0,"media type")
 
 data = filterData(data,1,uType)
 
-choice = "0"
-while(int(choice) < 1 or int(choice) > len(choices[1])):
-	print("\n In what format do you want to download the " + uType + " :\n")
-	
-	n = 1
-	for c in choices[1]:
-		print(" [" + str(n) +"] " + c + "\n")
-		n += 1
-
-	choice = input(" Enter a number : ")
-	if (int(choice) > 0 and int(choice) <= len(choices[1])):
-		uFormat = choices[1][int(choice)-1]
-	else:
-		print("\n Unknown choice ! Please enter a number again.")
+uFormat = choicesMenu(1,"format")
 
 data = filterData(data,2,uFormat)
 
-choice = "0"
-while(int(choice) < 1 or int(choice) > len(choices[2])):
-	print("\n In what res/abr do you want to download the " + uType + " :\n")
-	
-	n = 1
-	for c in choices[2]:
-		print(" [" + str(n) +"] " + c + "\n")
-		n += 1
-
-	choice = input(" Enter a number : ")
-	if (int(choice) > 0 and int(choice) <= len(choices[2])):
-		uRes = choices[2][int(choice)-1]
-	else:
-		print("\n Unknown choice ! Please enter a number again.")
+if(uType == "video"):
+	uRes = choicesMenu(2,"video resolution")
+else:
+	uRes = choicesMenu(2,"audio bitrate")
 
 data = filterData(data,3,uRes)
 
+# Download the media
 uTag = int(data[0][0])
 
 strmolution = yt.streams.get_by_itag(uTag)
 
-path = input('Enter the path for download : ')
+path = input('\n Enter the path for download : ')
 
-print("Downloading " + yt.title + "...")
+print("\n Downloading " + yt.title + "...")
 
 strmolution.download(output_path=path)
 
-print("Your video is downloaded !")
+print("\n Your video is downloaded !")
